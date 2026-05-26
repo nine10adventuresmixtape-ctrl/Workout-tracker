@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Workout Tracker</title>
+    <link rel="stylesheet" href="styles.css?v=pages-food-edit" />
+  </head>
+  <body>
+    <section id="loginScreen" class="login-screen">
+      <div class="login-card">
+        <img class="login-logo" src="workout-logo.png" alt="Workout" />
+        <div>
+          <p class="eyebrow">Train · Track · Transform</p>
+          <h1>Workout</h1>
+        </div>
+
+        <form id="loginForm" class="stack">
+          <label>
+            Email
+            <input id="loginEmail" type="email" autocomplete="username" placeholder="you@example.com" required />
+          </label>
+          <label>
+            PIN
+            <input id="loginPin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Enter PIN" required />
+          </label>
+          <button class="primary-button" type="submit">Login</button>
+        </form>
+
+        <form id="createUserForm" class="stack create-user-form">
+          <p class="eyebrow">New account</p>
+          <label>
+            Email
+            <input id="newUserEmail" type="email" autocomplete="email" placeholder="you@example.com" required />
+          </label>
+          <label>
+            PIN
+            <input id="newUserPin" type="password" inputmode="numeric" autocomplete="new-password" placeholder="Choose a PIN" required />
+          </label>
+          <button class="secondary-button" type="submit">Create account</button>
+        </form>
+        <form id="adminLoginForm" class="stack create-user-form">
+          <p class="eyebrow">Admin</p>
+          <label>
+            Admin email
+            <input id="adminEmail" type="email" autocomplete="username" placeholder="admin@workout.local" required />
+          </label>
+          <label>
+            Admin PIN
+            <input id="adminPin" type="password" inputmode="numeric" autocomplete="current-password" placeholder="Admin PIN" required />
+          </label>
+          <button class="secondary-button" type="submit">Admin login</button>
+        </form>
+        <p id="loginMessage" class="login-message" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section id="adminScreen" class="login-screen is-hidden">
+      <div class="login-card admin-card">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Admin</p>
+            <h1>Users</h1>
+          </div>
+          <button id="adminLogoutBtn" class="secondary-button" type="button">Logout</button>
+        </div>
+        <p class="form-note">Approve new accounts before they can log in.</p>
+        <form id="changeAdminPinForm" class="stack admin-pin-form">
+          <p class="eyebrow">Security</p>
+          <div class="two-col">
+            <label>
+              Current PIN
+              <input id="currentAdminPin" type="password" inputmode="numeric" autocomplete="current-password" required />
+            </label>
+            <label>
+              New PIN
+              <input id="newAdminPin" type="password" inputmode="numeric" autocomplete="new-password" required />
+            </label>
+          </div>
+          <button class="primary-button" type="submit">Change admin PIN</button>
+          <p id="adminMessage" class="login-message" aria-live="polite"></p>
+        </form>
+        <div id="adminUserList" class="admin-user-list"></div>
+      </div>
+    </section>
+
+    <main id="appShell" class="app-shell is-locked">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <img class="brand-logo" src="workout-logo.png" alt="Workout" />
+          <div>
+            <p class="eyebrow">Train · Track · Transform</p>
+            <h1>Workout</h1>
+          </div>
+        </div>
+        <div class="summary-strip" aria-label="Training summary">
+          <div>
+            <span id="currentUserName">--</span>
+            <small>User</small>
+          </div>
+          <div>
+            <span id="summaryWorkouts">0</span>
+            <small>Workouts</small>
+          </div>
+          <div>
+            <span id="summarySets">0</span>
+            <small>Sets</small>
+          </div>
+          <div>
+            <span id="summaryMinutes">0m</span>
+            <small>Time</small>
+          </div>
+        </div>
+      </header>
+
+      <nav class="tabs" aria-label="Main views">
+        <button class="tab-button is-active" data-view="logView" type="button">Log</button>
+        <button class="tab-button" data-view="exerciseView" type="button">Exercises</button>
+        <button class="tab-button" data-view="calendarView" type="button">Calendar</button>
+        <button class="tab-button" data-view="resultsView" type="button">Results</button>
+        <button class="tab-button" data-view="weightView" type="button">Weight</button>
+        <button class="tab-button" data-view="bloodPressureView" type="button">Blood pressure</button>
+        <button class="tab-button" data-view="nutritionView" type="button">Food & water</button>
+        <button id="logoutBtn" class="tab-button" type="button">Logout</button>
+      </nav>
+
+      <section id="logView" class="view is-active" aria-labelledby="logTitle">
+        <div class="workspace-grid">
+          <section class="panel panel-dark">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Today</p>
+                <h2 id="logTitle">Workout</h2>
+              </div>
+              <button id="resetWorkoutBtn" class="icon-button" title="Clear workout" type="button" aria-label="Clear workout">×</button>
+            </div>
+
+            <form id="workoutForm" class="stack">
+              <label>
+                Name
+                <input id="workoutName" name="workoutName" type="text" placeholder="Push day" autocomplete="off" required />
+              </label>
+              <div class="two-col">
+                <label>
+                  Date
+                  <input id="workoutDate" name="workoutDate" type="date" required />
+                </label>
+                <label>
+                  Time
+                  <input id="workoutMinutes" name="workoutMinutes" type="number" min="1" step="1" placeholder="45" required />
+                </label>
+              </div>
+              <div class="repeat-picker">
+                <label>
+                  Repeat previous workout
+                  <select id="repeatWorkoutSelect"></select>
+                </label>
+                <button id="repeatWorkoutBtn" class="secondary-button" type="button">Load</button>
+              </div>
+              <div class="exercise-picker">
+                <label>
+                  Exercise
+                  <select id="exerciseSelect" name="exerciseSelect"></select>
+                </label>
+                <button id="addExerciseBtn" class="secondary-button" type="button">Add</button>
+              </div>
+              <p class="form-note">Adding an exercise creates Set 1 to Set 5. Use Add set for more.</p>
+
+              <div id="workoutExercises" class="workout-list" aria-live="polite"></div>
+
+              <button class="primary-button" type="submit">Save workout</button>
+              <button id="cancelWorkoutEditBtn" class="secondary-button is-hidden" type="button">Cancel edit</button>
+            </form>
+
+            <form id="cardioForm" class="stack cardio-form">
+              <div class="panel-heading compact-heading">
+                <div>
+                  <p class="eyebrow">Cardio</p>
+                  <h2>Distance workout</h2>
+                </div>
+              </div>
+              <label>
+                Type
+                <select id="cardioType">
+                  <option>Running</option>
+                  <option>Treadmill running</option>
+                  <option>Walking</option>
+                  <option>Bike</option>
+                  <option>Indoor bike</option>
+                  <option>Rowing</option>
+                  <option>Cross trainer</option>
+                  <option>Stair climber</option>
+                  <option>Other cardio</option>
+                </select>
+              </label>
+              <div class="three-col">
+                <label>
+                  Date
+                  <input id="cardioDate" type="date" required />
+                </label>
+                <label>
+                  Minutes
+                  <input id="cardioMinutes" type="number" min="0" step="1" placeholder="30" required />
+                </label>
+                <label>
+                  Seconds
+                  <input id="cardioSeconds" type="number" min="0" max="59" step="1" placeholder="00" />
+                </label>
+              </div>
+              <div class="two-col">
+                <label>
+                  Distance
+                  <input id="cardioDistance" inputmode="decimal" type="number" min="0" step="0.01" placeholder="5.00" required />
+                </label>
+                <label>
+                  Unit
+                  <select id="cardioDistanceUnit">
+                    <option value="km">km</option>
+                    <option value="mi">mi</option>
+                  </select>
+                </label>
+              </div>
+              <button class="primary-button" type="submit">Save cardio</button>
+              <button id="cancelCardioEditBtn" class="secondary-button is-hidden" type="button">Cancel edit</button>
+            </form>
+          </section>
+
+          <aside class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Recent</p>
+                <h2>Sessions</h2>
+              </div>
+            </div>
+            <div id="recentWorkouts" class="recent-list"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="exerciseView" class="view" aria-labelledby="exerciseTitle">
+        <div class="workspace-grid">
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Library</p>
+                <h2 id="exerciseTitle">Exercises</h2>
+              </div>
+            </div>
+
+            <form id="exerciseForm" class="stack">
+              <label>
+                Exercise name
+                <input id="exerciseName" type="text" placeholder="Bench press" autocomplete="off" required />
+              </label>
+              <div class="two-col">
+                <label>
+                  Area
+                  <select id="exerciseArea">
+                    <option>Chest</option>
+                    <option>Back</option>
+                    <option>Legs</option>
+                    <option>Shoulders</option>
+                    <option>Arms</option>
+                    <option>Core</option>
+                    <option>Conditioning</option>
+                  </select>
+                </label>
+                <label>
+                  Equipment
+                  <input id="exerciseEquipment" type="text" placeholder="Barbell" autocomplete="off" />
+                </label>
+              </div>
+              <label>
+                Notes
+                <textarea id="exerciseNotes" rows="3" placeholder="Tempo, setup, cues"></textarea>
+              </label>
+              <label>
+                Image
+                <input id="exerciseImage" type="file" accept="image/*" />
+              </label>
+              <div id="exerciseImagePreview" class="image-preview is-empty">
+                <span>No image selected</span>
+                <button id="clearExerciseImageBtn" class="mini-button" type="button">Remove</button>
+              </div>
+              <button class="primary-button" type="submit">Create exercise</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">All</p>
+                <h2>Library</h2>
+              </div>
+            </div>
+            <div id="exerciseLibrary" class="exercise-library"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="calendarView" class="view" aria-labelledby="calendarTitle">
+        <div class="calendar-layout">
+          <section class="panel">
+            <div class="calendar-header">
+              <button id="prevMonthBtn" class="icon-button" title="Previous month" type="button" aria-label="Previous month">‹</button>
+              <h2 id="calendarTitle"></h2>
+              <button id="nextMonthBtn" class="icon-button" title="Next month" type="button" aria-label="Next month">›</button>
+            </div>
+            <div class="calendar-weekdays" aria-hidden="true">
+              <span>Mon</span>
+              <span>Tue</span>
+              <span>Wed</span>
+              <span>Thu</span>
+              <span>Fri</span>
+              <span>Sat</span>
+              <span>Sun</span>
+            </div>
+            <div id="calendarGrid" class="calendar-grid"></div>
+          </section>
+
+          <aside class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Selected</p>
+                <h2 id="selectedDateTitle">Day</h2>
+              </div>
+            </div>
+            <div id="selectedDayWorkouts" class="recent-list"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="nutritionView" class="view" aria-labelledby="nutritionTitle">
+        <div class="workspace-grid">
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Nutrition</p>
+                <h2 id="nutritionTitle">Food & water</h2>
+              </div>
+            </div>
+
+            <form id="nutritionGoalForm" class="stack">
+              <div class="three-col">
+                <label>
+                  Daily calorie goal
+                  <input id="calorieGoal" type="number" min="0" step="1" placeholder="2200" />
+                </label>
+                <label>
+                  Target weight
+                  <input id="targetWeight" type="number" min="0" step="0.1" placeholder="80" />
+                </label>
+                <label>
+                  Weeks
+                  <input id="targetWeeks" type="number" min="1" step="1" placeholder="12" />
+                </label>
+              </div>
+              <p id="calorieGoalHint" class="form-note"></p>
+              <button class="secondary-button" type="submit">Save goal</button>
+            </form>
+
+            <form id="foodSearchForm" class="stack cardio-form">
+              <div class="panel-heading compact-heading">
+                <div>
+                  <p class="eyebrow">Database</p>
+                  <h2>Search food</h2>
+                </div>
+              </div>
+              <div class="exercise-picker">
+                <label>
+                  Food name
+                  <input id="foodSearchInput" type="search" placeholder="Greek yogurt" autocomplete="off" />
+                </label>
+                <button class="primary-button" type="submit">Search</button>
+              </div>
+              <div class="exercise-picker">
+                <label>
+                  Barcode
+                  <input id="barcodeInput" inputmode="numeric" type="text" placeholder="Scan or enter barcode" autocomplete="off" />
+                </label>
+                <button id="barcodeLookupBtn" class="secondary-button" type="button">Lookup</button>
+              </div>
+              <button id="scanBarcodeBtn" class="secondary-button" type="button">Scan barcode</button>
+              <video id="barcodeVideo" class="barcode-video is-hidden" playsinline muted></video>
+              <p id="foodSearchMessage" class="form-note" aria-live="polite"></p>
+              <div id="foodSearchResults" class="recent-list"></div>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Today</p>
+                <h2>Calories & macros</h2>
+              </div>
+              <input id="nutritionDate" type="date" />
+            </div>
+            <div id="nutritionStats" class="weight-stats"></div>
+            <form id="waterForm" class="stack">
+              <div class="two-col">
+                <label>
+                  Water
+                  <input id="waterAmount" type="number" min="0" step="50" placeholder="500" />
+                </label>
+                <label>
+                  Unit
+                  <select id="waterUnit">
+                    <option value="ml">ml</option>
+                    <option value="oz">oz</option>
+                  </select>
+                </label>
+              </div>
+              <button class="secondary-button" type="submit">Add water</button>
+            </form>
+            <div id="foodLogList" class="recent-list nutrition-log"></div>
+          </section>
+        </div>
+      </section>
+
+      <section id="resultsView" class="view" aria-labelledby="resultsTitle">
+        <section class="panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">Progress</p>
+              <h2 id="resultsTitle">Results</h2>
+            </div>
+          </div>
+          <div id="resultsGrid" class="results-grid" aria-live="polite"></div>
+        </section>
+      </section>
+
+      <section id="weightView" class="view" aria-labelledby="weightTitle">
+        <div class="workspace-grid">
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Body weight</p>
+                <h2 id="weightTitle">Weight tracker</h2>
+              </div>
+            </div>
+
+            <form id="weightForm" class="stack">
+              <div class="two-col">
+                <label>
+                  Date
+                  <input id="weightDate" type="date" required />
+                </label>
+                <label>
+                  Weight
+                  <input id="weightValue" inputmode="decimal" type="number" min="0" step="0.1" placeholder="82.5" required />
+                </label>
+              </div>
+              <label>
+                Unit
+                <select id="weightUnit">
+                  <option value="kg">kg</option>
+                  <option value="lb">lb</option>
+                </select>
+              </label>
+              <button class="primary-button" type="submit">Save weight</button>
+            </form>
+            <form id="heightForm" class="stack bmi-form">
+              <div class="panel-heading compact-heading">
+                <div>
+                  <p class="eyebrow">BMI</p>
+                  <h2>Height</h2>
+                </div>
+              </div>
+              <div class="two-col">
+                <label>
+                  Height
+                  <input id="heightValue" inputmode="decimal" type="number" min="0" step="0.1" placeholder="175" />
+                </label>
+                <label>
+                  Unit
+                  <select id="heightUnit">
+                    <option value="cm">cm</option>
+                    <option value="ft">ft</option>
+                  </select>
+                </label>
+              </div>
+              <button class="secondary-button" type="submit">Save height</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Trend</p>
+                <h2>Graph</h2>
+              </div>
+              <div class="range-tabs" aria-label="Weight graph range">
+                <button class="range-button is-active" data-weight-range="7" type="button">7D</button>
+                <button class="range-button" data-weight-range="28" type="button">4W</button>
+                <button class="range-button" data-weight-range="3m" type="button">3M</button>
+                <button class="range-button" data-weight-range="12m" type="button">12M</button>
+              </div>
+            </div>
+            <div id="weightStats" class="weight-stats"></div>
+            <div id="bmiStats" class="weight-stats bmi-stats"></div>
+            <div id="weightChart" class="weight-chart" aria-live="polite"></div>
+          </section>
+        </div>
+
+        <section class="panel weight-history-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">History</p>
+              <h2>Weigh-ins</h2>
+            </div>
+          </div>
+          <div id="weightHistory" class="recent-list"></div>
+        </section>
+      </section>
+
+      <section id="bloodPressureView" class="view" aria-labelledby="bloodPressureTitle">
+        <div class="workspace-grid">
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Health</p>
+                <h2 id="bloodPressureTitle">Blood pressure</h2>
+              </div>
+            </div>
+            <form id="bloodPressureForm" class="stack">
+              <label>
+                Date
+                <input id="bpDate" type="date" required />
+              </label>
+              <div class="three-col">
+                <label>
+                  SYS
+                  <input id="bpSystolic" inputmode="numeric" type="number" min="40" max="260" step="1" placeholder="120" required />
+                </label>
+                <label>
+                  DIA
+                  <input id="bpDiastolic" inputmode="numeric" type="number" min="30" max="180" step="1" placeholder="80" required />
+                </label>
+                <label>
+                  Pulse
+                  <input id="bpPulse" inputmode="numeric" type="number" min="20" max="240" step="1" placeholder="70" required />
+                </label>
+              </div>
+              <button class="primary-button" type="submit">Save reading</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-heading">
+              <div>
+                <p class="eyebrow">Trend</p>
+                <h2>Progress</h2>
+              </div>
+            </div>
+            <div id="bpStats" class="weight-stats"></div>
+            <div id="bpRangeChart" class="bp-range-chart"></div>
+            <div id="bpChart" class="weight-chart" aria-live="polite"></div>
+          </section>
+        </div>
+
+        <section class="panel weight-history-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">History</p>
+              <h2>Readings</h2>
+            </div>
+          </div>
+          <div id="bpHistory" class="recent-list"></div>
+        </section>
+      </section>
+    </main>
+
+    <template id="exerciseBlockTemplate">
+      <article class="workout-card">
+        <div class="workout-card-head">
+          <div class="exercise-card-title">
+            <div class="exercise-thumb is-empty" aria-hidden="true"></div>
+            <div>
+              <h3></h3>
+              <p></p>
+            </div>
+          </div>
+          <button class="icon-button remove-exercise" title="Remove exercise" type="button" aria-label="Remove exercise">×</button>
+        </div>
+        <div class="sets"></div>
+        <button class="mini-button add-set" type="button">Add set</button>
+      </article>
+    </template>
+
+    <script src="app-online.js?v=food-amounts"></script>
+  </body>
+</html>
